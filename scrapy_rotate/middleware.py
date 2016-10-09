@@ -14,17 +14,20 @@ class RotateUserAgentMiddleware(object):
         return o
 
     def spider_opened(self, spider):
-        self.fake_ua = UserAgent()
+        self.use_default_useragent = getattr(spider, 'use_default_useragent', False)
+
+        if not self.use_default_useragent:
+            self.fake_ua = UserAgent()
 
     def process_request(self, request, spider):
-        keep_original_ua = getattr(spider, 'keep_original_ua', False)
-        if keep_original_ua:
-            request.headers['User-Agent'] = spider.settings.get('USER_AGENT', 'Scrapy')
+        use_default_useragent = getattr(spider, 'use_default_useragent', False)
+        if use_default_useragent:
+            request.headers['User-Agent'] = spider.settings.get('USER_AGENT', None)
+            return
 
-        else:
-            rotate_browsers = spider.settings.getlist('ROTATE_BROWSER_CHOICES')
-            user_agent = random.choice(rotate_browsers) if rotate_browsers else 'random'
-            request.headers['User-Agent'] = self.fake_ua[user_agent]
+        rotate_browsers = spider.settings.getlist('ROTATE_BROWSER_CHOICES')
+        user_agent = random.choice(rotate_browsers) if rotate_browsers else 'random'
+        request.headers['User-Agent'] = self.fake_ua[user_agent]
 
 
 class RotateProxyMiddleware(object):
