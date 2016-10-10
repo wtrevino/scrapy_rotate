@@ -2,6 +2,7 @@ from fake_useragent import UserAgent as FakeUserAgent
 from scrapy.signals import spider_opened
 
 import random
+import base64
 
 
 class RotateUserAgentMiddleware(object):
