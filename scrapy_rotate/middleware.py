@@ -32,7 +32,8 @@ class RotateFakeUserAgentMiddleware(RotateUserAgentMiddleware):
     def spider_opened(self, spider):
         super(RotateFakeUserAgentMiddleware, self).spider_opened(spider)
         if not self.use_default_useragent:
-            self.fake_useragent = FakeUserAgent()
+            cache = spider.settings.get('ROTATE_FAKE_USERAGENT_CACHE', True)
+            self.fake_useragent = FakeUserAgent(cache=cache)
             self.rotate_browsers = spider.settings.getlist('ROTATE_BROWSER_CHOICES')
 
     def get_useragent_string(self):
@@ -54,4 +55,35 @@ class RotateFileUserAgentMiddleware(RotateUserAgentMiddleware):
 
 
 class RotateProxyMiddleware(object):
-    pass
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        o = cls()
+        crawler.signals.connect(o.spider_opened, signal=spider_opened)
+        return o
+
+    def spider_opened(self, spider):
+        proxy_list = spider.settings.getlist('ROTATE_PROXY_LIST')
+        proxy_auth = spider.settings.get('ROTATE_PROXY_AUTH', '')
+        self.proxy_dict = {'{}'.format(proxy): proxy_auth for proxy in proxy_list}
+
+    def process_request(self, request, spider):
+        if 'proxy' in request.meta:
+            return
+
+        proxy_list = list(self.proxy_dict.keys())
+        proxy = random.choice(proxy_list)
+        auth = self.proxy_dict[proxy]
+
+        request.meta['proxy'] = proxy
+        if auth:
+            basic_auth = 'Basic ' + base64.encodestring(auth)
+            request.headers['Proxy-Authorization'] = basic_auth
+
+    def process_exception(self, request, exception, spider):
+        if 'proxy' in request.meta:
+            proxy = request.meta['proxy']
+            try:
+                del self.proxies[proxy]
+            except KeyError:
+                pass
