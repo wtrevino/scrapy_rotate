@@ -44,10 +44,9 @@ class RotateFileUserAgentMiddleware(RotateUserAgentMiddleware):
 
     def spider_opened(self, spider):
         super(RotateFileUserAgentMiddleware, self).spider_opened(spider)
-        useragent_file = settings.get('ROTATE_USERAGENT_FILE')
+        useragent_file = spider.settings.get('ROTATE_USERAGENT_FILE')
         with open(useragent_file, 'r') as f:
-            from ipdb import set_trace;set_trace()
-            self.user_agent_list = [line.strip() for line in f.readlines() if line]
+            self.user_agent_list = [line.strip() for line in f.readlines() if line.strip()]
             self.user_agent_list = list(set(self.user_agent_list))
 
     def get_useragent_string(self):
