@@ -19,6 +19,9 @@ class RotateUserAgentMiddleware(object):
             default_useragent = default_useragent()
         self.default_useragent = default_useragent
 
+    def get_useragent_string(self):
+        raise NotImplementedError
+
     def process_request(self, request, spider):
         if self.use_default_useragent:
             request.headers['User-Agent'] = self.default_useragent
@@ -45,7 +48,7 @@ class RotateFileUserAgentMiddleware(RotateUserAgentMiddleware):
 
     def spider_opened(self, spider):
         super(RotateFileUserAgentMiddleware, self).spider_opened(spider)
-        useragent_file = spider.settings.get('ROTATE_USERAGENT_FILE')
+        useragent_file = spider.settings.get('ROTATE_USERAGENT_FILE')  # TODO: raise error when None
         with open(useragent_file, 'r') as f:
             self.user_agent_list = [line.strip() for line in f.readlines() if line.strip()]
             self.user_agent_list = list(set(self.user_agent_list))
@@ -76,7 +79,7 @@ class RotateProxyMiddleware(object):
         auth = self.proxy_dict[proxy]
 
         request.meta['proxy'] = proxy
-        if auth:
+        if auth:  # TODO: check this actually works...
             basic_auth = 'Basic ' + base64.encodestring(auth)
             request.headers['Proxy-Authorization'] = basic_auth
 
@@ -84,6 +87,6 @@ class RotateProxyMiddleware(object):
         if 'proxy' in request.meta:
             proxy = request.meta['proxy']
             try:
-                del self.proxies[proxy]
+                del self.proxy_dict[proxy]
             except KeyError:
                 pass
