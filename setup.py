@@ -3,16 +3,13 @@
 from setuptools import setup
 
 
-with open('requirements.txt') as f:
-    requirements = f.read().splitlines()
-
 exec(open('scrapy_rotate/version.py').read())
 
 setup(
     name='scrapy_rotate',
     packages=['scrapy_rotate'],
     version=__version__,
-    install_requires=requirements,
+    install_requires=['fake-useragent>=0.1.2'],
     license='MIT',
     description='A set of Scrapy middlewares useful for rotating user agents and proxies.',
     author='Walter Trevino',
