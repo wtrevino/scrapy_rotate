@@ -10,6 +10,8 @@ setup(
     packages=['scrapy_rotate'],
     version=__version__,
     install_requires=['fake-useragent>=0.1.2'],
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
     license='MIT',
     description='A set of Scrapy middlewares useful for rotating user agents and proxies.',
     author='Walter Trevino',

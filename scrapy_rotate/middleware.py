@@ -7,6 +7,8 @@ import base64
 
 class RotateUserAgentMiddleware(object):
 
+    use_default_useragent = False
+
     @classmethod
     def from_crawler(cls, crawler):
         o = cls()
@@ -23,15 +25,21 @@ class RotateUserAgentMiddleware(object):
     def get_useragent_string(self):
         raise NotImplementedError
 
+    def process_response(self, request, response, spider):
+        return response
+
     def process_request(self, request, spider):
         if self.use_default_useragent:
             request.headers['User-Agent'] = self.default_useragent
             return
 
-        request.headers['User-Agent'] = self.get_useragent_string()
+        self.useragent = self.get_useragent_string()
+        request.headers['User-Agent'] = self.useragent
 
 
 class RotateFakeUserAgentMiddleware(RotateUserAgentMiddleware):
+    rotate_browsers = []
+    fake_useragent = None
 
     def spider_opened(self, spider):
         super(RotateFakeUserAgentMiddleware, self).spider_opened(spider)
